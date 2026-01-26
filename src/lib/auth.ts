@@ -16,8 +16,39 @@ export interface LoginResult {
   error?: string
 }
 
+// Mock login for development (when API is not available)
+const MOCK_LOGIN_ENABLED = true
+
+const mockLogin = async (params: LoginParams): Promise<LoginResult> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  // Accept any credentials for development
+  if (params.username && params.password) {
+    const mockAccessToken = 'mock_access_token_' + Date.now()
+    const mockRefreshToken = 'mock_refresh_token_' + Date.now()
+    const issuedAt = Math.floor(Date.now() / 1000)
+
+    setTokens(mockAccessToken, mockRefreshToken, 3600, issuedAt)
+    setWorkerInfo({
+      workerId: 'mock_worker_001',
+      workerName: params.username,
+      relatedSiteId: 'site_001',
+    })
+
+    return { success: true }
+  }
+
+  return { success: false, error: '아이디와 비밀번호를 입력해주세요.' }
+}
+
 // Login API call
 export const login = async (params: LoginParams): Promise<LoginResult> => {
+  // Use mock login in development when API is not available
+  if (MOCK_LOGIN_ENABLED) {
+    return mockLogin(params)
+  }
+
   try {
     const requestBody = {
       username: params.username,

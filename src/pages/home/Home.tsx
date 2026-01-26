@@ -1,6 +1,7 @@
+import { useNavigate } from "react-router-dom"
 import FmdGoodIcon from "@mui/icons-material/FmdGood"
 import { AppHeader } from "@/components/layout/AppHeader"
-import { AppBottomNav } from "@/components/layout/AppBottomNav"
+import { AppBottomNav, NavItem } from "@/components/layout/AppBottomNav"
 import QRCodeScanner from "@/components/ui/QrScanner"
 import { LocationPermissionPopup } from "@/components/ui/LocationPermissionPopup"
 import { formatKstTime } from "@/utils/time"
@@ -8,6 +9,7 @@ import { useHomeAgent } from "./useHomeAgent"
 import { WeeklyCalendar } from "./components"
 
 export function Home() {
+  const navigate = useNavigate()
   const {
     userName,
     currentDate,
@@ -22,6 +24,13 @@ export function Home() {
     checkoutPopup,
     actions,
   } = useHomeAgent()
+
+  const handleNavigation = (item: NavItem) => {
+    console.log("Navigation clicked:", item)
+    if (item === "profile") {
+      navigate("/profile")
+    }
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
@@ -176,7 +185,7 @@ export function Home() {
         </div>
       </div>
 
-      <AppBottomNav className="shrink-0" />
+      <AppBottomNav className="shrink-0" onNavigate={handleNavigation} />
 
       {/* QR Scanner Overlay Popup */}
       {scanner.isOpen && (

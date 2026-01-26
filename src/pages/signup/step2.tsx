@@ -1,20 +1,35 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AppHeader } from "@/components/layout/AppHeader"
+import { LabeledInput } from "@/components/ui/labeled-input"
 
-type PhoneOwnership = "own" | "other" | null
+function formatPhoneNumber(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
 
 export function SignUpStep2Page() {
   const navigate = useNavigate()
-  const [selectedOption, setSelectedOption] = useState<PhoneOwnership>(null)
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [showVerificationInput, setShowVerificationInput] = useState(false)
+  const [verificationCode, setVerificationCode] = useState("")
 
   const handleBack = () => {
     navigate(-1)
   }
 
-  const handleNext = () => {
-    if (selectedOption) {
-      navigate("/signup/step3")
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setPhoneNumber(formatted)
+  }
+
+  const isPhoneComplete = phoneNumber.replace(/\D/g, "").length === 11
+
+  const handleRequestCode = () => {
+    if (isPhoneComplete) {
+      setShowVerificationInput(true)
     }
   }
 
@@ -31,52 +46,42 @@ export function SignUpStep2Page() {
       <main className="flex-1 overflow-y-auto px-4">
         <div className="mt-4">
           <p className="text-2xl font-bold text-slate-900 mb-6 leading-tight">
-            회원 가입을 위해 본인 인증을<br />진행해 주세요
+            현재 이용중인 휴대폰 번호를<br /> 인증해주세요.
           </p>
 
-          <div className="space-y-3">
-            {/* Option 1: Own phone */}
+          <div className="flex items-end gap-2">
+            <LabeledInput
+              label="휴대폰 번호"
+              type="tel"
+              placeholder="010-0000-0000"
+              value={phoneNumber}
+              onChange={handlePhoneChange}
+              className="w-[190px]"
+            />
             <button
-              onClick={() => setSelectedOption("own")}
-              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-                selectedOption === "own"
-                  ? "border-primary bg-primary/5"
-                  : "border-gray-200 hover:border-gray-300"
+              onClick={handleRequestCode}
+              disabled={!isPhoneComplete}
+              className={`h-12 w-[190px] rounded-lg font-medium transition-colors whitespace-nowrap ${
+                isPhoneComplete
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
             >
-              <p className="font-bold text-slate-900">내 명의 휴대폰이 있어요</p>
-              <p className="text-sm text-slate-500 mt-1">
-                내 명의로 가입된 휴대전화 번호로 가입합니다.
-              </p>
-            </button>
-
-            {/* Option 2: Other's phone */}
-            <button
-              onClick={() => setSelectedOption("other")}
-              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-                selectedOption === "other"
-                  ? "border-primary bg-primary/5"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              <p className="font-bold text-slate-900">내 명의 휴대폰이 없어요</p>
-              <p className="text-sm text-slate-500 mt-1">
-                타인 명의로 가입된 휴대전화 번호로 가입합니다.
-              </p>
+              인증번호 받기
             </button>
           </div>
 
-          <button
-            onClick={handleNext}
-            disabled={!selectedOption}
-            className={`w-full mt-8 py-4 rounded-lg font-medium transition-colors ${
-              selectedOption
-                ? "bg-primary text-white hover:bg-primary/90"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
-          >
-            다음
-          </button>
+          {showVerificationInput && (
+            <div className="mt-4">
+              <LabeledInput
+                label="인증번호"
+                type="text"
+                placeholder="인증번호 입력"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+              />
+            </div>
+          )}
         </div>
       </main>
     </div>
