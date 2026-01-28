@@ -13,5 +13,7 @@ export {
 
 export {
   fetchWeeklyAttendanceRecords,
+  fetchMonthlyAttendanceRecords,
   type FetchWeeklyRecordsResult,
+  type FetchMonthlyRecordsResult,
 } from "./calendar-api.skill"

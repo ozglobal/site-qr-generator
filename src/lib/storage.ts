@@ -30,6 +30,7 @@ export interface AuthData {
 export interface ProfileData {
   workerId: string
   workerName: string
+  username?: string
   relatedSiteId?: string
 }
 
@@ -68,6 +69,7 @@ const STORAGE_KEYS = {
   PROFILE: 'profile',
   CHECK_IN: 'checkIn',
   TODAY_ATTENDANCE: 'todayAttendance',
+  MONTHLY_ATTENDANCE: 'monthlyAttendance',
   AUTO_LOGIN: 'autoLogin',
 } as const
 
@@ -148,7 +150,9 @@ export const profileStorage = {
     const data: ProfileData = {
       workerId: String(workerInfo.id ?? ''),
       workerName: String(workerInfo.nameKo ?? ''),
-      ...(workerInfo.relatedSiteId && { relatedSiteId: String(workerInfo.relatedSiteId) }),
+    }
+    if (workerInfo.relatedSiteId) {
+      data.relatedSiteId = String(workerInfo.relatedSiteId)
     }
     if (data.workerId || data.workerName) {
       profileStorage.set(data)
@@ -300,6 +304,18 @@ export const todayAttendanceStorage = {
     const attendance = todayAttendanceStorage.get()
     return (attendance?.records.length ?? 0) >= MAX_CHECKINS_PER_DAY
   },
+}
+
+// ============================================
+// Monthly Attendance Storage
+// ============================================
+
+export const monthlyAttendanceStorage = {
+  get: (): unknown[] | null => getStorageItem<unknown[]>(STORAGE_KEYS.MONTHLY_ATTENDANCE),
+
+  set: (records: unknown[]): void => setStorageItem(STORAGE_KEYS.MONTHLY_ATTENDANCE, records),
+
+  clear: (): void => removeStorageItem(STORAGE_KEYS.MONTHLY_ATTENDANCE),
 }
 
 // ============================================

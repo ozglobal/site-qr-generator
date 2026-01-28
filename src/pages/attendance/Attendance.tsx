@@ -1,24 +1,53 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { AppHeader } from "@/components/layout/AppHeader"
 import { AppBottomNav, NavItem } from "@/components/layout/AppBottomNav"
 import { MonthSelector, ViewMode } from "@/components/ui/MonthSelector"
 import { SiteCombobox, SiteOption } from "@/components/ui/SiteCombobox"
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar, type CalendarEvent } from "@/components/ui/calendar"
 import { ko } from "react-day-picker/locale"
+import { fetchMonthlyAttendance, type WeeklyAttendanceRecord } from "@/lib/attendance"
 
 const siteOptions: SiteOption[] = [
   { value: "site-a", label: "현장 A" },
   { value: "site-b", label: "현장 B" },
 ]
 
+const currentYear = new Date().getFullYear()
+const currentMonth = new Date().getMonth() + 1
+
+const SITE_COLORS = ["#007DCA", "#F59E0B", "#10B981", "#EF4444"]
+
+function recordsToEvents(records: WeeklyAttendanceRecord[]): CalendarEvent[] {
+  const siteIndexMap = new Map<string, number>()
+  const checkedIn = records.filter((r) => r.hasCheckedIn)
+  checkedIn.forEach((r) => {
+    if (!siteIndexMap.has(r.siteId)) siteIndexMap.set(r.siteId, siteIndexMap.size)
+  })
+  return checkedIn.map((r) => ({
+    date: new Date(r.effectiveDate),
+    color: SITE_COLORS[(siteIndexMap.get(r.siteId) ?? 0) % SITE_COLORS.length],
+    label: r.workEffort != null ? String(r.workEffort) : "",
+  }))
+}
+
 export function AttendancePage() {
   const navigate = useNavigate()
-  const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth() + 1)
+  const [year, setYear] = useState(currentYear)
+  const [month, setMonth] = useState(currentMonth)
   const [viewMode, setViewMode] = useState<ViewMode>("calendar")
   const [selectedSite, setSelectedSite] = useState("")
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+
+  useEffect(() => {
+    const offset = (currentYear - year) * 12 + (currentMonth - month)
+    console.log('[ATTENDANCE] useEffect fired, offset:', offset)
+    fetchMonthlyAttendance(offset).then((res) => {
+      if (res.success && res.data) {
+        setEvents(recordsToEvents(res.data.records))
+      }
+    })
+  }, [year, month])
 
   const handlePrevMonth = () => {
     if (month === 1) {
@@ -78,6 +107,7 @@ export function AttendancePage() {
               setMonth(d.getMonth() + 1)
             }}
             locale={ko}
+            events={events}
             className="w-full"
           />
         )}

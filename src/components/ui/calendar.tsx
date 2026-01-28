@@ -128,7 +128,7 @@ function Calendar({
                 {dayEvents.slice(0, 2).map((event, i) => {
                   const dotClass = getEventDotColor(event.color)
                   return (
-                    <div key={i} className="flex items-center gap-0.5">
+                    <div key={i} className="flex items-center gap-1">
                       <span
                         className={cn("w-2 h-2 rounded-full shrink-0", dotClass)}
                         style={
@@ -137,7 +137,7 @@ function Calendar({
                             : undefined
                         }
                       />
-                      <span className="text-[10px] text-slate-700 leading-tight">
+                      <span className="text-xs font-medium text-slate-700 leading-tight">
                         {event.label}
                       </span>
                     </div>

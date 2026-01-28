@@ -113,13 +113,13 @@ export function AppBottomNav({
             onClick={() => handleNavigate(id)}
             className={cn(
               "flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors",
-              isActive ? "text-primary" : "text-slate-400"
+              isActive ? "text-primary" : "text-slate-500"
             )}
           >
             <Icon active={isActive} />
             <span
               className={cn(
-                "text-[11px]",
+                "text-xs",
                 isActive ? "font-bold" : "font-medium"
               )}
             >

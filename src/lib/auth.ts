@@ -104,6 +104,14 @@ export const login = async (params: LoginParams): Promise<LoginResult> => {
       console.log('[LOGIN] No workerInfo in payload')
     }
 
+    // Save username from login request to profile
+    const profile = profileStorage.get()
+    if (profile) {
+      profileStorage.set({ ...profile, username: params.username })
+    } else {
+      profileStorage.set({ workerId: '', workerName: '', username: params.username })
+    }
+
     console.log('[LOGIN] Success')
     return { success: true }
   } catch (error) {

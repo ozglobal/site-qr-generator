@@ -1,6 +1,6 @@
 import { authFetch } from './auth'
 import { devLogApiRaw, devLogRequestRaw } from '../utils/devLog'
-import { profileStorage, todayAttendanceStorage } from './storage'
+import { profileStorage, todayAttendanceStorage, monthlyAttendanceStorage } from './storage'
 
 import { API_BASE_URL, X_TENANT_ID } from './config'
 
@@ -409,6 +409,81 @@ export const fetchWeeklyAttendance = async (offset: number = 0): Promise<WeeklyA
     }
   } catch (error) {
     console.error('[WEEKLY] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+    }
+  }
+}
+
+// ============================================
+// Monthly Attendance API
+// ============================================
+
+/**
+ * Monthly attendance API response
+ */
+export interface MonthlyAttendanceResponse {
+  success: boolean
+  data?: {
+    records: WeeklyAttendanceRecord[]
+    attendanceDays: number
+    totalWorkHours: number
+    totalWorkEffort: number
+    startDate: string
+    endDate: string
+  }
+  error?: string
+}
+
+/**
+ * Fetch monthly attendance records from API
+ * @param offset - Month offset (0 = current month, 1 = last month, etc.)
+ */
+export const fetchMonthlyAttendance = async (offset: number = 0): Promise<MonthlyAttendanceResponse> => {
+  try {
+    const endpoint = `/system/attendance/my/month?offset=${offset}`
+    console.log('[MONTHLY] Fetching:', endpoint)
+    devLogRequestRaw(endpoint, { method: 'GET', offset })
+
+    const response = await authFetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        'X-Tenant-Id': X_TENANT_ID,
+      },
+    })
+
+    const data = await response.json()
+    console.log('[MONTHLY] Response status:', response.status)
+    console.log('[MONTHLY] Response data:', data)
+    devLogApiRaw(endpoint, { status: response.status, data })
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.message || data.error || `Failed to fetch monthly attendance (${response.status})`,
+      }
+    }
+
+    const payload = data.data || data
+    const records = payload.records || []
+
+    monthlyAttendanceStorage.set(records)
+
+    return {
+      success: true,
+      data: {
+        records,
+        attendanceDays: payload.attendanceDays || 0,
+        totalWorkHours: payload.totalWorkHours || 0,
+        totalWorkEffort: payload.totalWorkEffort || 0,
+        startDate: payload.startDate || '',
+        endDate: payload.endDate || '',
+      },
+    }
+  } catch (error) {
+    console.error('[MONTHLY] Error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
