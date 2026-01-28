@@ -16,7 +16,9 @@ export function ProfilePage() {
 
   const handleNavigation = (item: NavItem) => {
     if (item === "home") {
-      navigate("/")
+      navigate("/home")
+    } else if (item === "attendance") {
+      navigate("/attendance")
     } else if (item === "profile") {
       // Already on profile page
     }
