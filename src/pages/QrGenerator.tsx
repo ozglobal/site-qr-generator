@@ -24,9 +24,6 @@ export function QrGenerator() {
         </h1>
 
         <div className="space-y-3">
-          <label htmlFor="uuid" className="block text-sm font-medium text-gray-700">
-            현장 코드
-          </label>
           <select
             id="uuid"
             value={uuid}
